@@ -47,11 +47,11 @@ GoRouter createRouter(AuthViewModel authViewModel) {
       GoRoute(path: '/login', builder: (_, __) => const LoginView()),
       GoRoute(path: '/', builder: (_, __) => const HomeView()),
       GoRoute(
-        path: '/edit',
+        path: '/task',
         builder: (_, __) => const EditTaskView(taskId: ''),
       ),
       GoRoute(
-        path: '/edit/:taskId',
+        path: '/task/:taskId',
         builder: (context, state) {
           final taskId = state.pathParameters['taskId']!;
           return EditTaskView(taskId: taskId);

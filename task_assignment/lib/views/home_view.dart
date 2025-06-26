@@ -109,13 +109,13 @@ class HomeView extends StatelessWidget {
             itemCount: tasks.length,
             itemBuilder: (_, i) => TaskTile(
               task: tasks[i],
-              onTap: () => context.push('/edit/${tasks[i].id}'),
+              onTap: () => context.push('/task/${tasks[i].id}'),
             ),
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/edit'),
+        onPressed: () => context.push('/task'),
         child: const Icon(Icons.add),
       ),
     );

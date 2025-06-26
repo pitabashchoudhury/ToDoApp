@@ -1,6 +1,8 @@
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
+import 'package:task_assignment/services/dynamic_link_service.dart';
 import 'package:task_assignment/view_models/task_view_model.dart';
 import 'app_routes.dart';
 import 'view_models/auth_view_model.dart';
@@ -8,6 +10,12 @@ import 'view_models/auth_view_model.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  final authViewModel = AuthViewModel();
+  final router = createRouter(authViewModel);
+
+  DynamicLinksService.instance.setRouter(router);
+  await DynamicLinksService.instance.handleDynamicLinks();
+
   runApp(const App());
 }
 

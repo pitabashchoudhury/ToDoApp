@@ -28,19 +28,19 @@ class TaskViewModel extends ChangeNotifier {
   /// 🔄 Share with user by their email
   Future<void> shareWithUserEmail(String taskId, String email) async {
     try {
-      final userSnap = await FirebaseFirestore.instance
-          .collection('users')
-          .where('email', isEqualTo: email)
-          .limit(1)
-          .get();
+      // final userSnap = await FirebaseFirestore.instance
+      //     .collection('users')
+      //     .where('email', isEqualTo: email)
+      //     .limit(1)
+      //     .get();
 
-      if (userSnap.docs.isEmpty) {
-        throw Exception('User not found');
-      }
+      // if (userSnap.docs.isEmpty) {
+      //   throw Exception('User not found');
+      // }
 
-      final userId = userSnap.docs.first.id;
+      // final userId = userSnap.docs.first.id;
 
-      await _fs.shareTaskWithUserId(taskId, userId);
+      await _fs.shareTaskWithUserId(taskId, email);
 
       notifyListeners();
     } catch (e) {

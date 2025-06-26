@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:task_assignment/services/dynamic_link_service.dart';
 import 'package:task_assignment/widgets/assign_modal.dart';
 import '../models/task_model.dart';
 import '../view_models/auth_view_model.dart';
@@ -90,6 +92,21 @@ class _EditTaskViewState extends State<EditTaskView> {
         ),
         actions: widget.taskId.isNotEmpty
             ? [
+                IconButton(
+                  icon: Icon(Icons.share, color: Colors.white),
+                  onPressed: () async {
+                    final link = await DynamicLinksService.instance
+                        .createDynamicLibks(widget.taskId);
+                    SharePlus.instance.share(
+                      ShareParams(
+                        uri: link,
+                        text: "Task assignment",
+                        subject: "Check out ",
+                      ),
+                    );
+                  },
+                ),
+
                 if (isSynced && isEditing)
                   const Padding(
                     padding: EdgeInsets.only(right: 8),
