@@ -9,9 +9,51 @@ class TaskViewModel extends ChangeNotifier {
 
   List<TaskModel> cachedTasks = [];
 
-  TaskViewModel(String uid) {
+  List<TaskModel> yourTasks = [];
+  DocumentSnapshot? _lastYourTaskDoc;
+  bool isLoadingMoreYourTasks = false;
+  bool hasMoreYourTasks = true;
+
+  Future<void> fetchMoreYourTasks({int limit = 10}) async {
+    if (isLoadingMoreYourTasks || !hasMoreYourTasks) return;
+    isLoadingMoreYourTasks = true;
+    notifyListeners();
+
+    final (newTasks, lastDoc) = await _fs.fetchAssignedTasksPaginatedWithCursor(
+      uid: uid,
+      lastDoc: _lastYourTaskDoc,
+      limit: limit,
+    );
+
+    if (newTasks.isEmpty) {
+      hasMoreYourTasks = false;
+    } else {
+      yourTasks.addAll(newTasks);
+      _lastYourTaskDoc = lastDoc;
+    }
+
+    isLoadingMoreYourTasks = false;
+    notifyListeners();
+  }
+
+  Future<void> refreshYourTasks() async {
+    yourTasks.clear();
+    _lastYourTaskDoc = null;
+    hasMoreYourTasks = true;
+    await fetchMoreYourTasks();
+  }
+
+  // For pagination (assigned to me)
+  List<TaskModel> assignedToMeTasks = [];
+  DocumentSnapshot? lastAssignedDoc;
+  bool hasMoreAssignedTasks = true;
+  bool isLoadingMoreAssignedTasks = false;
+
+  final String uid;
+
+  TaskViewModel(this.uid) {
     taskStream = _fs.streamTasks(uid).map((tasks) {
-      cachedTasks = tasks; // Cache the result for UI pagination
+      cachedTasks = tasks; // Optional caching for all tasks
       return tasks;
     });
   }
@@ -33,24 +75,45 @@ class TaskViewModel extends ChangeNotifier {
   /// 🔄 Share with user by their email
   Future<void> shareWithUserEmail(String taskId, String email) async {
     try {
-      // final userSnap = await FirebaseFirestore.instance
-      //     .collection('users')
-      //     .where('email', isEqualTo: email)
-      //     .limit(1)
-      //     .get();
-
-      // if (userSnap.docs.isEmpty) {
-      //   throw Exception('User not found');
-      // }
-
-      // final userId = userSnap.docs.first.id;
-
       await _fs.shareTaskWithUserId(taskId, email);
-
       notifyListeners();
     } catch (e) {
       debugPrint('Error sharing task: $e');
       rethrow;
     }
+  }
+
+  /// 🔁 Pagination: Fetch next page of "assigned to me" tasks
+  Future<void> fetchMoreAssignedTasks({int limit = 10}) async {
+    if (isLoadingMoreAssignedTasks || !hasMoreAssignedTasks) return;
+
+    isLoadingMoreAssignedTasks = true;
+    notifyListeners();
+
+    try {
+      final (newTasks, lastDoc) = await _fs
+          .fetchAssignedTasksPaginatedWithCursor(
+            uid: uid,
+            lastDoc: lastAssignedDoc,
+            limit: limit,
+          );
+
+      assignedToMeTasks.addAll(newTasks);
+      lastAssignedDoc = lastDoc;
+      hasMoreAssignedTasks = newTasks.length == limit;
+    } catch (e) {
+      debugPrint("Failed to fetch assigned tasks: $e");
+    }
+
+    isLoadingMoreAssignedTasks = false;
+    notifyListeners();
+  }
+
+  /// 🔁 Optional: Refresh from scratch
+  Future<void> refreshAssignedTasks({int limit = 10}) async {
+    assignedToMeTasks.clear();
+    lastAssignedDoc = null;
+    hasMoreAssignedTasks = true;
+    await fetchMoreAssignedTasks(limit: limit);
   }
 }

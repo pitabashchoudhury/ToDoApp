@@ -5,6 +5,34 @@ import 'package:task_assignment/models/task_model.dart';
 class FirestoreService {
   final _db = FirebaseFirestore.instance;
 
+  Future<(List<TaskModel>, DocumentSnapshot?)>
+  fetchAssignedTasksPaginatedWithCursor({
+    required String uid,
+    DocumentSnapshot? lastDoc,
+    int limit = 10,
+  }) async {
+    Query query = _db
+        .collection('tasks')
+        .where('sharedWith', arrayContains: uid)
+        .orderBy('createdAt', descending: true)
+        .limit(limit);
+
+    if (lastDoc != null) {
+      query = query.startAfterDocument(lastDoc);
+    }
+
+    final snap = await query.get();
+
+    final tasks = snap.docs
+        .map(
+          (doc) =>
+              TaskModel.fromMap(doc.id, doc.data() as Map<String, dynamic>),
+        )
+        .toList();
+
+    return (tasks, snap.docs.isNotEmpty ? snap.docs.last : null);
+  }
+
   Stream<List<TaskModel>> streamTasks(String uid) {
     return _db
         .collection('tasks')
@@ -71,5 +99,31 @@ class FirestoreService {
     if (query.docs.isEmpty) return null;
 
     return query.docs.first.id; // UID is the document ID
+  }
+
+  Future<(List<TaskModel>, DocumentSnapshot?)>
+  fetchYourTasksPaginatedWithCursor({
+    required String uid,
+    DocumentSnapshot? lastDoc,
+    int limit = 10,
+  }) async {
+    Query query = _db
+        .collection('tasks')
+        .where('ownerId', isEqualTo: uid)
+        .orderBy('createdAt', descending: true)
+        .limit(limit);
+
+    if (lastDoc != null) {
+      query = query.startAfterDocument(lastDoc);
+    }
+
+    final snap = await query.get();
+
+    final tasks = snap.docs.map((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      return TaskModel.fromMap(doc.id, data);
+    }).toList();
+
+    return (tasks, snap.docs.isNotEmpty ? snap.docs.last : null);
   }
 }

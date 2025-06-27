@@ -98,11 +98,7 @@ class _EditTaskViewState extends State<EditTaskView> {
                     final link = await DynamicLinksService.instance
                         .createDynamicLibks(widget.taskId);
                     SharePlus.instance.share(
-                      ShareParams(
-                        uri: link,
-                        text: "Task assignment",
-                        subject: "Check out ",
-                      ),
+                      ShareParams(text: "Task assignment\nCheck out: $link"),
                     );
                   },
                 ),

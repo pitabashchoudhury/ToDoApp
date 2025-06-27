@@ -15,19 +15,21 @@ class DynamicLinksService {
 
   Future<Uri> createDynamicLibks(String taskId) async {
     final dynamicLinkParams = DynamicLinkParameters(
-      link: Uri.parse("https://testassignment.page.link.com/task?id=$taskId"),
+      link: Uri.parse("https://testassignment.page.link/task?id=$taskId"),
       uriPrefix: "https://testassignment.page.link",
       androidParameters: const AndroidParameters(
         packageName: "com.example.task_assignment",
       ),
       iosParameters: const IOSParameters(bundleId: "com.example.app.ios"),
     );
-    final dynamicLink = await FirebaseDynamicLinks.instance.buildShortLink(
-      dynamicLinkParams,
-      shortLinkType: ShortDynamicLinkType.unguessable,
-    );
+    // final dynamicLink = await FirebaseDynamicLinks.instance.buildShortLink(
+    //   dynamicLinkParams,
+    //   shortLinkType: ShortDynamicLinkType.unguessable,
+    // );
 
-    return dynamicLink.shortUrl;
+    // return dynamicLink.shortUrl;
+
+    return Uri.parse("https://testassignment.page.link/task");
   }
 
   /// 🔍 Handle dynamic links

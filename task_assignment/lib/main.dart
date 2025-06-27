@@ -49,11 +49,12 @@ class RouterApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => TaskViewModel(uid)),
       ],
       child: MaterialApp.router(
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
           primarySwatch: Colors.indigo,
           scaffoldBackgroundColor: const Color(0xFFF4F6FA),
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Colors.purpleAccent,
+          appBarTheme: AppBarTheme(
+            backgroundColor: Colors.teal.shade600,
             elevation: 2,
             centerTitle: false,
             iconTheme: IconThemeData(color: Colors.white),
