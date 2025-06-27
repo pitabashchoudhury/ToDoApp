@@ -1,28 +1,96 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:task_assignment/widgets/dotted_line.dart';
 import '../view_models/auth_view_model.dart';
 import '../view_models/task_view_model.dart';
 import '../models/task_model.dart';
 import '../widgets/task_tile.dart';
 
-class HomeView extends StatelessWidget {
+class HomeView extends StatefulWidget {
   const HomeView({super.key});
+
+  @override
+  State<HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
+  late TabController _tabController;
+  late ScrollController _scrollController;
+  int _currentPage = 1;
+  final int _pageSize = 10;
+  List<TaskModel> _paginatedTasks = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _scrollController = ScrollController()..addListener(_scrollListener);
+  }
+
+  void _scrollListener() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      _loadMore();
+    }
+  }
+
+  void _loadMore() {
+    final taskVM = Provider.of<TaskViewModel>(context, listen: false);
+    final allTasks = taskVM.cachedTasks;
+
+    final nextPage = _currentPage + 1;
+    final startIndex = (_currentPage) * _pageSize;
+    final endIndex = startIndex + _pageSize;
+
+    if (startIndex < allTasks.length) {
+      setState(() {
+        _currentPage = nextPage;
+        _paginatedTasks.addAll(
+          allTasks.sublist(startIndex, endIndex.clamp(0, allTasks.length)),
+        );
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Widget _buildTaskList(List<TaskModel> tasks) {
+    _paginatedTasks = tasks.take(_pageSize).toList();
+
+    return ListView.builder(
+      controller: _scrollController,
+      itemCount: _paginatedTasks.length,
+      itemBuilder: (_, i) => Column(
+        children: [
+          TaskTile(
+            task: _paginatedTasks[i],
+            onTap: () => context.push('/task/${_paginatedTasks[i].id}'),
+          ),
+          const DottedDivider(),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final authVM = Provider.of<AuthViewModel>(context, listen: false);
-    final taskVM = Provider.of<TaskViewModel>(context, listen: false);
+    final taskVM = Provider.of<TaskViewModel>(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tasks'),
+        title: const Text('Task Manager'),
+
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await authVM.signOut();
-            },
+            onPressed: () => authVM.signOut(),
           ),
         ],
       ),
@@ -37,23 +105,14 @@ class HomeView extends StatelessWidget {
             return Center(child: Text('Error: ${snapshot.error}'));
           }
 
-          final tasks = snapshot.data;
+          final allTasks = snapshot.data ?? [];
+          taskVM.cachedTasks = allTasks; // Store in VM for pagination
 
-          if (tasks == null || tasks.isEmpty) {
-            return const Center(child: Text('No tasks available.'));
-          }
-
-          return ListView.builder(
-            itemCount: tasks.length,
-            itemBuilder: (_, i) => TaskTile(
-              task: tasks[i],
-              onTap: () => GoRouter.of(context).push('/edit', extra: tasks[i]),
-            ),
-          );
+          return _buildTaskList(allTasks);
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => GoRouter.of(context).push('/edit'),
+        onPressed: () => context.push('/task'),
         child: const Icon(Icons.add),
       ),
     );

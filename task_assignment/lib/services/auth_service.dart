@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:task_assignment/services/firestore_service.dart';
 
 class AuthService {
   final _auth = FirebaseAuth.instance;
@@ -8,6 +9,9 @@ class AuthService {
       email: email,
       password: pass,
     );
+    if (cred != null && cred.user != null) {
+      await FirestoreService().saveUserToFirestore(cred.user!);
+    }
     return cred.user;
   }
 
