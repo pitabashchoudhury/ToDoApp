@@ -48,7 +48,24 @@ class RouterApp extends StatelessWidget {
         ChangeNotifierProvider.value(value: authVM),
         ChangeNotifierProvider(create: (_) => TaskViewModel(uid)),
       ],
-      child: MaterialApp.router(routerConfig: createRouter(authVM)),
+      child: MaterialApp.router(
+        theme: ThemeData(
+          primarySwatch: Colors.indigo,
+          scaffoldBackgroundColor: const Color(0xFFF4F6FA),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.purpleAccent,
+            elevation: 2,
+            centerTitle: false,
+            iconTheme: IconThemeData(color: Colors.white),
+            titleTextStyle: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        routerConfig: createRouter(authVM),
+      ),
     );
   }
 }

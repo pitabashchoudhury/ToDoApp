@@ -7,8 +7,13 @@ class TaskViewModel extends ChangeNotifier {
   final FirestoreService _fs = FirestoreService();
   late Stream<List<TaskModel>> taskStream;
 
+  List<TaskModel> cachedTasks = [];
+
   TaskViewModel(String uid) {
-    taskStream = _fs.streamTasks(uid);
+    taskStream = _fs.streamTasks(uid).map((tasks) {
+      cachedTasks = tasks; // Cache the result for UI pagination
+      return tasks;
+    });
   }
 
   /// 🔁 Stream all tasks shared with current user
